@@ -9,7 +9,7 @@ const ForgotPassword = () => {
   const handleResetPassword = () => {
     if (email) {
       Alert.alert('Password Reset Sent', `A reset link has been sent to ${email}`);
-      router.replace('/'); // Navigate back to login page
+      router.replace('/');
     } else {
       Alert.alert('Error', 'Please enter your email');
     }
