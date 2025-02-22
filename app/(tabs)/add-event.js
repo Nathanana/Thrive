@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-
-const AddEventPage: React.FC = () => {
+const AddEventPage = () => {
   const [eventName, setEventName] = useState('');
   const [location, setLocation] = useState('');
   const [eventType, setEventType] = useState('');
