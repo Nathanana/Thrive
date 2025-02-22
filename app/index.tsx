@@ -1,15 +1,18 @@
-import { Text, View } from "react-native";
+import React from 'react';
+import { Text, Button } from 'react-native';
+import { Link } from 'expo-router';
 
-export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
-}
+const Main = () => {
+    return (
+      <>
+      <Link href="/add-event">
+        <Text>Add Event</Text>
+      </Link>
+      <Link href="/event-page">
+        <Text>Event Page</Text>
+      </Link>
+    </>
+    );
+  };
+
+export default Main
