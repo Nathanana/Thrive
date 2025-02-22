@@ -3,9 +3,10 @@ import { Stack } from 'expo-router';
 export default function RootLayout() {
   return (
     <Stack>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="event-page" />
-      <Stack.Screen name="add-event" />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="main" options={{ headerShown: false }} />
+      <Stack.Screen name="event-page" options={{ title: "Event Page" }} />
+      <Stack.Screen name="add-event" options={{ title: "Add Event" }} />
       <Stack.Screen name="void" />
     </Stack>
   );
