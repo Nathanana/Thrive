@@ -24,6 +24,7 @@ const Register = () => {
           username: username,
           email: email,
           host: false,
+          hostGroup: '',
           userGroups: []
         });
   

@@ -5,6 +5,8 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { arrayUnion, updateDoc, doc, getFirestore, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const Host = true;
 const { width, height } = Dimensions.get('window');
@@ -25,19 +27,80 @@ const Main = () => {
     { id: 4, latitude: 38.03770, longitude: -78.50014, image: require('../assets/images/outdoors.png') }
   ]);
 
+  
   const [isInviteVisible, setIsInviteVisible] = useState(false);
   const [isGroupVisible, setIsGroupVisible] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
+  const auth = getAuth();
+  const db = getFirestore();
+
+  const getGroup = async (groupID: string) => {
+    try {
+      const groupDoc = await getDoc(doc(db, 'groups', groupID));
+      if (groupDoc.exists()) {
+        const groupName = groupDoc.data()?.name;
+        return groupName || null;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error getting group:', error);
+      return null;
+    }
+  };
+
+  const addUserGroup = async (groupID: string) => {
+    const group = await getGroup(groupID);  // Wait for the group to resolve
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          userGroups: arrayUnion(group),
+        });
+        await deleteDoc(doc(db, 'groups', groupID));
+        Alert.alert('Group Added', `You've joined ${group}.`);
+      } catch (error) {
+        console.error('Error adding item:', error);
+        Alert.alert('Error', 'There was an issue adding you to the group.');
+      }
+    }
+  };
+  
 
   const clearGroupCode = () => {
     setGroupCode('');
-  }
+  };
+
+  const getGroupOfHost = async (user: any) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const groupName = userDoc.data()?.hostGroup;
+        return groupName || null;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error getting group:', error);
+      return null;
+    }
+  };
   
-  const generateCode = () => {
+  const generateCode = async () => {
     const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
     setInviteCode(randomCode);
-  }
-
+  
+    try {
+      const tempName = await getGroupOfHost(auth.currentUser);
+      await setDoc(doc(db, 'groups', randomCode), {
+        name: tempName,
+      });
+      console.log('Group successfully created with code:', randomCode);
+    } catch (error) {
+      console.error('Error generating code or creating group:', error);
+    }
+  };
+  
   const toggleInviteModal = () => {
     setIsInviteVisible(!isInviteVisible);
   };
@@ -127,6 +190,9 @@ const Main = () => {
                 maxLength={4}
               />
               <Text style={styles.modalText}>ENTER INVITE CODE</Text>
+              <TouchableOpacity style={styles.customButton} onPress={() => addUserGroup(groupCode)}>
+                <Text style={styles.buttonText}>SUBMIT</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -212,6 +278,17 @@ const styles = StyleSheet.create({
     color: 'white',
     marginTop: 8,
     fontFamily: 'monospace',
+  },
+  buttonText: {
+    textAlign: 'center',
+    color: 'white',
+    marginTop: 8,
+    fontFamily: 'monospace',
+  },
+  customButton: {
+    textAlign: 'center',
+    color: 'black',
+    marginTop: 8,
   },
   inviteCode: {
     fontSize: 70,
