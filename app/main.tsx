@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Button, View, Dimensions, Alert, Image, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { Button, View, Dimensions, Alert, Image, Text, TouchableOpacity,  Modal } from 'react-native';
 import { Link } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { StyleSheet } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 
 const Host = true;
 const { width, height } = Dimensions.get('window');
@@ -22,6 +23,19 @@ const Main = () => {
     { id: 3, latitude: 38.03470, longitude: -78.50214, image: require('../assets/images/athletics.jpg') },
     { id: 4, latitude: 38.03770, longitude: -78.50014, image: require('../assets/images/outdoors.png') }
   ]);
+  
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  
+  const generateCode = () => {
+    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    setInviteCode(randomCode);
+  }
+
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible);
+  };
 
   useEffect(() => {
     getPermissions();
@@ -50,14 +64,33 @@ const Main = () => {
     }
   }
 
+  const copyToClipboard = (code: string) => {
+    Clipboard.setStringAsync(code);
+    Alert.alert("Copied!", `Invite code ${code} copied to clipboard.`);
+  };
+
   return (
     <>
       <View style={styles.container}>
-
-        {!location && <Text>Loading user location...</Text>}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={toggleModal}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.inviteCode}>{inviteCode}</Text>
+            <TouchableOpacity style={styles.copyButton} onPress={() => {toggleModal(), copyToClipboard(inviteCode)}}>
+              <Image source={require('../assets/images/copy.png')} style={styles.copyButtonIcon} />
+            </TouchableOpacity>
+            <Text style={styles.modalText}>ONE TIME INVITE CODE</Text>
+          </View>
+        </View>
+      </Modal>
 
         <MapView
-          style={{ width, height: height * 0.62 }}
+          style={styles.map}
           region={{
             latitude: location?.latitude || 38.03569,
             longitude: location?.longitude || -78.50334,
@@ -68,25 +101,9 @@ const Main = () => {
         >
           {eventLocations.length > 0 ? (
             eventLocations.map((event) => (
-              <Link href="/event-page" asChild>
-                <Marker
-                  key={event.id}
-                  coordinate={{
-                    latitude: event.latitude,
-                    longitude: event.longitude,
-                  }}
-
-                >
-                  <Image
-                    source={event.image}
-                    style={{
-                      width: 50,
-                      height: 50,
-                      borderRadius: 25,
-                      borderWidth: 2,
-                      borderColor: 'white',
-                    }}
-                  />
+              <Link href="/event-page" asChild key={event.id}>
+                <Marker coordinate={{ latitude: event.latitude, longitude: event.longitude }}>
+                  <Image source={event.image} style={styles.eventImage} />
                 </Marker>
               </Link>
             ))
@@ -94,13 +111,22 @@ const Main = () => {
             <Text>No events to display</Text>
           )}
         </MapView>
+
         {Host && (
           <Link href="/add-event" asChild>
-            <TouchableOpacity style={styles.floatingButton}>
-              <Image source={require('../assets/images/plus-icon.png')} style={styles.buttonIcon} />
+            <TouchableOpacity style={styles.addButton}>
+              <Image source={require('../assets/images/plus-icon.png')} style={styles.addButtonIcon} />
             </TouchableOpacity>
           </Link>
         )}
+        {Host && (
+          <TouchableOpacity style={styles.inviteButton} onPress={() => {toggleModal(); generateCode() ;}}>
+            <Image source={require('../assets/images/invite.png')} style={styles.inviteButtonIcon} />
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity style={styles.groupButton} onPress={() => {toggleModal(); generateCode() ;}}>
+          <Image source={require('../assets/images/group.jpg')} style={styles.inviteButtonIcon} />
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -109,11 +135,65 @@ const Main = () => {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#131E3A',
+    backgroundColor: '#ccc',
   },
-  floatingButton: {
+  map: {
+    width,
+    height: height,
+    zIndex: 0, 
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: '#131E3A',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    opacity: 0.85,
+  },
+  modalText: {
+    textAlign: 'center',
+    color: 'white',
+    marginTop: 8,
+    fontFamily: 'monospace',
+  },
+  inviteCode: {
+    fontSize: 70,
+    fontWeight: 'bold',
+    fontFamily: 'roboto',
+    color: 'white',
+    paddingLeft: 15,
+    paddingRight: 15,
+    borderWidth: 1,
+    borderRadius: 5,
+  }, 
+  sheet: {
+    backgroundColor: '#131E3A',
+    borderRadius: 10,
+    zIndex: 3,
     position: 'absolute',
-    bottom: 360,
+    width: '100%',
+    height: '102%',
+    bottom: 0,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 30,
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 92,
     right: 20,
     backgroundColor: '#131E3A',
     width: 60,
@@ -126,12 +206,93 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
+    opacity: 0.85,
   },
-  buttonIcon: {
+  copyButton: {
+    position: 'absolute',
+    bottom: 5,
+    right: 15,
+    backgroundColor: '#131E3A',
+    width: 30,
+    height: 30,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    opacity: 0.85,
+  },
+  copyButtonIcon: {
+    width: 20,
+    height: 20,
+    tintColor: 'white',
+  },
+  inviteButton: {
+    position: 'absolute',
+    bottom: 164,
+    right: 20,
+    backgroundColor: '#131E3A',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    opacity: 0.85,
+  },
+  groupButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#131E3A',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    opacity: 0.85,
+  },
+  inviteButtonIcon: {
     width: 30,
     height: 30,
     tintColor: 'white',
   },
+  addButtonIcon: {
+    width: 30,
+    height: 30,
+    tintColor: 'white',
+  },
+  eventImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  eventItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    paddingLeft: 10,
+  },
+  eventName: {
+    color: 'white',
+    fontSize: 16,
+    marginLeft: 10,
+  }
 });
+
 
 export default Main;
