@@ -15,7 +15,7 @@ const Register = () => {
       await AsyncStorage.setItem('userName', username);
       await AsyncStorage.setItem('userPassword', password);
   
-      Alert.alert('Registration Successful', 'You can now log in!');
+      Alert.alert('Registration Successful', 'Welcome to Thrive!');
       router.replace('/');
     } else {
       Alert.alert('Error', 'Please fill in all fields');

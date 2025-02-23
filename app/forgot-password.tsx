@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const router = useRouter();
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     if (email) {
+      const resetToken = 'some-reset-token';
+      await AsyncStorage.setItem('@reset_token', resetToken);
+
       Alert.alert('Password Reset Sent', `A reset link has been sent to ${email}`);
-      router.replace('/');
     } else {
       Alert.alert('Error', 'Please enter your email');
     }
