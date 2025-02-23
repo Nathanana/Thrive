@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 function formatDate(input) {
   let value = input.replace(/\D/g, "");
@@ -63,14 +65,21 @@ const AddEventPage = () => {
   const [isFocus, setIsFocus] = useState(false);
 
   const handleSubmit = async () => {
-    console.log({ eventName, location, eventType, date, time, inviteOption });
     if (eventName && location && eventType && date && time && inviteOption) {
-      await AsyncStorage.setItem('eventName', eventName);
-      await AsyncStorage.setItem('eventLoc', location);
-      await AsyncStorage.setItem('eventType', eventType);
-      await AsyncStorage.setItem('eventDate', date);
-      await AsyncStorage.setItem('eventTime', time);
-      await AsyncStorage.setItem('eventInvite', inviteOption);
+      try {
+        await addDoc(collection(db, 'events'), {  // Ensure addDoc is imported
+          eventName,
+          location,
+          eventType,
+          date,
+          time,
+          inviteOption,
+          createdAt: new Date(),
+        });
+        console.log('Event added successfully to Firestore');
+      } catch (error) {
+        console.error('Error adding event:', error);
+      }
     }
     router.back();
   };

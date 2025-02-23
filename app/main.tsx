@@ -6,6 +6,8 @@ import * as Location from 'expo-location';
 import { StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 const Host = true;
 const { width, height } = Dimensions.get('window');
@@ -52,27 +54,26 @@ const Main = async () => {
     setIsGroupVisible(!isGroupVisible);
   };
 
-  useEffect(() => {
-    const fetchEventData = async () => {
-      try {
-        const storedEventName = await AsyncStorage.getItem('eventName');
-        const storedLocation = await AsyncStorage.getItem('eventLoc');
-        const storedEventType = await AsyncStorage.getItem('eventType');
-        const storedDate = await AsyncStorage.getItem('eventDate');
-        const storedTime = await AsyncStorage.getItem('eventTime');
-        const storedInvite = await AsyncStorage.getItem('eventInvite');
-
-        if (storedEventName) setEventName(storedEventName);
-        if (storedLocation) setAddress(storedLocation);
-        if (storedEventType) setEventType(storedEventType);
-        if (storedDate) setDate(storedDate);
-        if (storedTime) setTime(storedTime);
-        if (storedInvite) setInviteOption(storedInvite);
-      } catch (error) {
-        console.log('Error retrieving data:', error);
+  const fetchEventData = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'events'));
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+          const eventData = doc.data();
+          setEventName(eventData.eventName);
+          setAddress(eventData.location);
+          setEventType(eventData.eventType);
+          setDate(eventData.date);
+          setTime(eventData.time);
+          setInviteOption(eventData.inviteOption);
+        });
       }
-    };
-
+    } catch (error) {
+      console.error('Error fetching event data:', error);
+    }
+  };
+  
+  useEffect(() => {
     fetchEventData();
   }, []);
 
