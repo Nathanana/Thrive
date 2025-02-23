@@ -23,6 +23,8 @@ const Register = () => {
         await setDoc(doc(db, 'users', user.uid), {
           username: username,
           email: email,
+          host: false,
+          userGroups: []
         });
   
         Alert.alert('Registration Successful', 'You can now log in!');
