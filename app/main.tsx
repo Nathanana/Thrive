@@ -7,12 +7,10 @@ import { StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { arrayUnion, updateDoc, doc, getFirestore, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
 
-const Host = true;
 const { width, height } = Dimensions.get('window');
+console.error = () => {};
 
 interface LocationCoords {
   latitude: number;
@@ -40,6 +38,36 @@ const Main = async () => {
   const [inviteCode, setInviteCode] = useState('');
   const auth = getAuth();
   const db = getFirestore();
+
+  const fetchUser = async (uid: any) => {
+    const userDocRef = doc(db, 'users', uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (userDocSnap.exists()) {
+      const userData = userDocSnap.data();
+      const isHost = userData.host;
+      return isHost;
+    } else {
+      console.log('No such user!');
+      return null;
+    }
+  };
+
+  const [isHost, setIsHost] = useState<boolean | null>(null); // state to hold 'isHost' value
+  const [loading, setLoading] = useState<boolean>(true); // state to track loading status
+
+  useEffect(() => {
+    const fetchHostStatus = async () => {
+      const user = auth.currentUser; // Get current user (assuming auth is initialized)
+      if (user) {
+        const hostStatus = await fetchUser(user.uid); // fetchUser returns the 'isHost' value
+        setIsHost(hostStatus); // update the state with the fetched 'isHost'
+        setLoading(false); // set loading to false once the data is fetched
+      }
+    };
+
+    fetchHostStatus();
+  }, []);
 
   const getGroup = async (groupID: string) => {
     try {
@@ -223,6 +251,10 @@ const Main = async () => {
     Alert.alert("Copied!", `Invite code ${code} copied to clipboard.`);
   };
 
+  if (isHost === null) {
+    return <Text>Loading...</Text>;
+  }
+
   return (
     <>
       <View style={styles.container}>
@@ -303,17 +335,18 @@ const Main = async () => {
           )}
         </MapView>
 
-        {Host && (
-          <Link href="/add-event" asChild>
-            <TouchableOpacity style={styles.addButton}>
-              <Image source={require('../assets/images/plus-icon.png')} style={styles.addButtonIcon} />
+        {isHost ? (
+          <>
+            <Link href="/add-event" asChild>
+              <TouchableOpacity style={styles.addButton}>
+                <Image source={require('../assets/images/plus-icon.png')} style={styles.addButtonIcon} />
+              </TouchableOpacity>
+            </Link>
+            <TouchableOpacity style={styles.inviteButton} onPress={() => { toggleInviteModal(); generateCode(); }}>
+              <Image source={require('../assets/images/invite.png')} style={styles.inviteButtonIcon} />
             </TouchableOpacity>
-          </Link>
-        )}
-        {Host && (
-          <TouchableOpacity style={styles.inviteButton} onPress={() => { toggleInviteModal(); generateCode(); }}>
-            <Image source={require('../assets/images/invite.png')} style={styles.inviteButtonIcon} />
-          </TouchableOpacity>
+          </>
+        ) : (null
         )}
         <TouchableOpacity style={styles.groupButton} onPress={() => { toggleGroupModal(); clearGroupCode(); }}>
           <Image source={require('../assets/images/group.png')} style={styles.inviteButtonIcon} />

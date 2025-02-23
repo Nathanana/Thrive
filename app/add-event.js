@@ -1,22 +1,22 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import { useRouter } from 'expo-router';
 
 function formatDate(input) {
   let value = input.replace(/\D/g, "");
   let formatted = "";
 
   if (value.length > 0) {
-      formatted += value.substring(0, 2);
-      if (value.length >= 3) {
-          formatted += "/" + value.substring(2, 4);
-      }
-      if (value.length >= 5) {
-          formatted += "/" + value.substring(4, 8);
-      }
+    formatted += value.substring(0, 2);
+    if (value.length >= 3) {
+      formatted += "/" + value.substring(2, 4);
+    }
+    if (value.length >= 5) {
+      formatted += "/" + value.substring(4, 8);
+    }
   }
   return formatted;
 }
@@ -63,11 +63,12 @@ const AddEventPage = () => {
   const [inviteOption, setInviteOption] = useState('Organizations');
   const [value, setValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async () => {
     if (eventName && location && eventType && date && time && inviteOption) {
       try {
-        await addDoc(collection(db, 'events'), {  // Ensure addDoc is imported
+        await addDoc(collection(db, 'events'), { 
           eventName,
           location,
           eventType,
@@ -76,48 +77,38 @@ const AddEventPage = () => {
           inviteOption,
           createdAt: new Date(),
         });
-        console.log('Event added successfully to Firestore');
+        Alert.alert('Success', 'Event added successfully!');
+        router.push('/');
       } catch (error) {
-        console.error('Error adding event:', error);
+        Alert.alert('Error', 'Failed to add event. Please try again.');
       }
+    } else {
+      Alert.alert('Error', 'Please fill in all fields.');
     }
-    router.back();
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 10 }}>Add Event</Text>
-      <Text style={{ marginBottom: 5 }}>Event Name:</Text>
-      <TextInput 
-        placeholder = 'Event Name'
-        placeholderTextColor="black"
-        value={eventName} 
-        onChangeText={setEventName}
-        style={{ 
-          borderWidth: 1,
-          padding: 5, 
-          marginBottom: 10,
-          borderRadius: 10,
-        }}
-      />
+    <ImageBackground source={require('../assets/images/icon.png')} style={styles.background}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Add Event</Text>
 
-      <Text style={{ marginBottom: 5 }}>Location:</Text>
-      <TextInput 
-        placeholder="Location" 
-        placeholderTextColor="black"
-        value={location} 
-        onChangeText={setLocation} 
-        style={{ 
-          borderWidth: 1, 
-          padding: 5, 
-          marginBottom: 10, 
-          borderRadius: 10,
-        }}
-      />
-      <Text style={{ marginBottom: 5}}>Event Type:</Text>
-      <View style={styles}>
+        <TextInput
+          style={styles.input}
+          placeholder="Event Name"
+          value={eventName}
+          onChangeText={setEventName}
+          placeholderTextColor="#555"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Location"
+          value={location}
+          onChangeText={setLocation}
+          placeholderTextColor="#555"
+        />
+
         <Dropdown
-          style={[styles.dropdown, isFocus && { borderColor: 'black' }]}
+          style={[styles.dropdown, isFocus && { borderColor: 'black' }, { backgroundColor: 'white' }, {opacity: 0.85}]}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
@@ -128,6 +119,7 @@ const AddEventPage = () => {
           labelField="label"
           valueField="value"
           placeholder={!isFocus ? 'Select Event Style' : '...'}
+          placeholderTextColor='#555'
           searchPlaceholder="Search..."
           value={value}
           onFocus={() => setIsFocus(true)}
@@ -135,103 +127,114 @@ const AddEventPage = () => {
           onChange={item => {
             setEventType(item.value);
             setIsFocus(false);
-            }}
-          />
-      </View>
-        <View style={{ marginRight: 50, marginTop: 10}}>
-        <Text style={{ marginBottom: 5 }}>Date:</Text>
-        <TextInput
-          placeholder="MM/DD/YYYY"
-          placeholderTextColor="black"
-          value={date}
-          onChangeText={(text) => setDate(formatDate(text))}
-          keyboardType="numeric"
-          maxLength={10}
-          style={{
-            width: 100,
-            borderWidth: 1,
-            padding: 5,
-            marginBottom: 10,
-            borderRadius: 10,
           }}
         />
-        <View style={styles}>
-        <Text style={{ marginBottom: 5 }}>Time:</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="MM/DD/YYYY"
+          value={date}
+          onChangeText={text => setDate(formatDate(text))}
+          keyboardType="numeric"
+          maxLength={10}
+          placeholderTextColor="#555"
+        />
+
         <Dropdown
-          style={[styles.dropdown, isFocus && { borderColor: 'black' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
+          style={[styles.dropdown, isFocus && { borderColor: 'black' }, {backgroundColor: 'white'}]}
           data={clock}
-          search
-          maxHeight={300}
           labelField="label"
           valueField="value"
           placeholder={!isFocus ? 'Select Time' : '...'}
-          searchPlaceholder="Search..."
-          value={value}
+          value={time}
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
-          onChange={item => {
-            setTime(item.value);
-            }}
-          />
+          onChange={item => setTime(item.value)}
+        />
+
+        <Text style={styles.inviteText}>Who is Invited?</Text>
+        <View style={styles.inviteContainer}>
+          <TouchableOpacity onPress={() => setInviteOption('Organizations')} style={styles.inviteButton}>
+            <Text>{inviteOption === 'Organizations' ? '🔘' : '⚪️'} Organizations</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setInviteOption('UVA')} style={styles.inviteButton}>
+            <Text>{inviteOption === 'UVA' ? '🔘' : '⚪️'} UVA</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setInviteOption('Everyone')} style={styles.inviteButton}>
+            <Text>{inviteOption === 'Everyone' ? '🔘' : '⚪️'} Everyone</Text>
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <Text style={{ fontWeight: 'bold', marginBottom: 5, marginTop: 10 }}>Who is Invited?</Text>
-      <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-        <TouchableOpacity onPress={() => setInviteOption('Organizations')} style={{ marginRight: 10 }}>
-          <Text>{inviteOption === 'Organizations' ? '🔘' : '⚪️'} Organizations</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setInviteOption('UVA')} style={{ marginRight: 10 }}>
-          <Text>{inviteOption === 'UVA' ? '🔘' : '⚪️'} UVA</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setInviteOption('Everyone')} style={{ marginRight: 10 }}>
-          <Text>{inviteOption === 'Everyone' ? '🔘' : '⚪️'} Everyone</Text>
+        <TouchableOpacity style={styles.customButton} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Add Event</Text>
         </TouchableOpacity>
       </View>
-
-      <Button title="Add Event" onPress={handleSubmit} />
-    </View>
+    </ImageBackground>
   );
 };
 
-export default AddEventPage;
-
 const styles = StyleSheet.create({
-  dropdown: {
-    height: 30,
-    borderColor: 'black',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 8,
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
   },
-  icon: {
-    marginRight: 5,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  label: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    left: 22,
-    top: 8,
-    zIndex: 999,
-    paddingHorizontal: 8,
-    fontSize: 14,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    color: 'white',
   },
-  placeholderStyle: {
-    fontSize: 16,
-  },
-  selectedTextStyle: {
-    fontSize: 16,
-  },
-  iconStyle: {
-    width: 20,
-    height: 20,
-  },
-  inputSearchStyle: {
+  input: {
     height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingLeft: 8,
+    borderRadius: 5,
+    backgroundColor: 'white',
+    opacity: 0.85,
+  },
+  dropdown: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    borderRadius: 5,
+    paddingLeft: 8,
+  },
+  inviteText: {
+    color: 'white',
+    marginBottom: 10,
     fontSize: 16,
+    paddingLeft: 132,
+  },
+  inviteContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  inviteButton: {
+    marginRight: 10,
+  },
+  customButton: {
+    backgroundColor: '#131E3A',
+    paddingVertical: 12,
+    borderRadius: 5,
+    alignItems: 'center',
+    opacity: 0.85,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
+
+export default AddEventPage;
