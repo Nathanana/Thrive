@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Button, View, Dimensions, Alert, Image, Text, TouchableOpacity,  Modal } from 'react-native';
+import { Button, View, Dimensions, Alert, Image, Text, TouchableOpacity,  Modal, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Link } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -15,6 +15,7 @@ interface LocationCoords {
 }
 
 const Main = () => {
+  const [groupCode, setGroupCode] = useState('');
   const [location, setLocation] = useState<LocationCoords | null>(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [eventLocations, setEventLocations] = useState([
@@ -23,18 +24,26 @@ const Main = () => {
     { id: 3, latitude: 38.03470, longitude: -78.50214, image: require('../assets/images/athletics.jpg') },
     { id: 4, latitude: 38.03770, longitude: -78.50014, image: require('../assets/images/outdoors.png') }
   ]);
-  
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isInviteVisible, setIsInviteVisible] = useState(false);
+  const [isGroupVisible, setIsGroupVisible] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
+
+  const clearGroupCode = () => {
+    setGroupCode('');
+  }
   
   const generateCode = () => {
-    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
     setInviteCode(randomCode);
   }
 
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
+  const toggleInviteModal = () => {
+    setIsInviteVisible(!isInviteVisible);
+  };
+
+  const toggleGroupModal = () => {
+    setIsGroupVisible(!isGroupVisible);
   };
 
   useEffect(() => {
@@ -75,18 +84,52 @@ const Main = () => {
       <Modal
         animationType="slide"
         transparent={true}
-        visible={isModalVisible}
-        onRequestClose={toggleModal}
+        visible={isInviteVisible}
+        onRequestClose={toggleInviteModal}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.inviteCode}>{inviteCode}</Text>
-            <TouchableOpacity style={styles.copyButton} onPress={() => {toggleModal(), copyToClipboard(inviteCode)}}>
-              <Image source={require('../assets/images/copy.png')} style={styles.copyButtonIcon} />
-            </TouchableOpacity>
-            <Text style={styles.modalText}>ONE TIME INVITE CODE</Text>
+        <TouchableWithoutFeedback onPress={() => {
+          Keyboard.dismiss();
+          toggleInviteModal();
+        }}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.inviteCode}>{inviteCode}</Text>
+              <TouchableOpacity style={styles.copyButton} onPress={() => {toggleInviteModal(), copyToClipboard(inviteCode)}}>
+                <Image source={require('../assets/images/copy.png')} style={styles.copyButtonIcon} />
+              </TouchableOpacity>
+              <Text style={styles.modalText}>ONE TIME INVITE CODE</Text>
+            </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isGroupVisible}
+        onRequestClose={toggleGroupModal}
+      >
+        <TouchableWithoutFeedback onPress={() => {
+          Keyboard.dismiss();
+          toggleGroupModal();
+        }}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <TextInput
+                placeholder=''
+                value={groupCode}
+                style={styles.groupCode}
+                onChangeText={(text) => {
+                  const numericText = text.replace(/[^0-9]/g, '');
+                  setGroupCode(numericText);
+                }}
+                keyboardType='numeric'
+                maxLength={4}
+              />
+              <Text style={styles.modalText}>ENTER INVITE CODE</Text>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
         <MapView
@@ -120,12 +163,12 @@ const Main = () => {
           </Link>
         )}
         {Host && (
-          <TouchableOpacity style={styles.inviteButton} onPress={() => {toggleModal(); generateCode() ;}}>
+          <TouchableOpacity style={styles.inviteButton} onPress={() => {toggleInviteModal(); generateCode() ;}}>
             <Image source={require('../assets/images/invite.png')} style={styles.inviteButtonIcon} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.groupButton} onPress={() => {toggleModal(); generateCode() ;}}>
-          <Image source={require('../assets/images/group.jpg')} style={styles.inviteButtonIcon} />
+        <TouchableOpacity style={styles.groupButton} onPress={() => {toggleGroupModal(); clearGroupCode();}}>
+          <Image source={require('../assets/images/group.png')} style={styles.inviteButtonIcon} />
         </TouchableOpacity>
       </View>
     </>
@@ -158,6 +201,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
+    width: '70%',
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
@@ -177,6 +221,21 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     paddingRight: 15,
     borderWidth: 1,
+    borderRadius: 5,
+    width: '100%',
+    textAlign: 'center',
+  }, 
+  groupCode: {
+    fontSize: 70,
+    fontWeight: 'bold',
+    fontFamily: 'roboto',
+    backgroundColor: 'white',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    width: '100%',
+    paddingLeft: 15,
+    paddingRight: 15,
+    textAlign: 'center',
     borderRadius: 5,
   }, 
   sheet: {
