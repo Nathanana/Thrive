@@ -1,80 +1,125 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const screenWidth = Dimensions.get('window').width;
+
+const footerImage = require('../assets/images/buildings.jpg'); // Adjust the path as needed
 
 const EventPage = () => {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Event Image */}
+    <View style={{ flex: 1, backgroundColor: 'black' }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Event Image with Downward Gradient */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ uri: 'https://news.virginia.edu/sites/default/files/Header_Ryan_Marathon_SS.jpg' }} 
+            style={styles.eventImage} 
+            resizeMode="cover" 
+          />
+          <LinearGradient
+            colors={['transparent', 'black']} // Gradient from transparent to black
+            style={styles.gradientOverlay}
+          />
+        </View>
+
+        {/* Event Title */}
+        <Text style={styles.eventTitle}>Run with Jim Ryan</Text>
+
+        {/* Event Description (Now right below the title) */}
+        <Text style={styles.eventDescription}>by @JimRyan</Text>
+
+        {/* Event Date & Time */}
+        <Text style={styles.eventDate}>February 6th, 2025 at 7:00 AM</Text>
+
+        {/* Buttons Container (Side by Side) */}
+        <View style={styles.buttonContainer}>
+          {/* RSVP Button */}
+          <TouchableOpacity style={styles.button} onPress={() => alert('RSVP clicked')}>
+            <Text style={styles.buttonText}>RSVP</Text>
+          </TouchableOpacity>
+
+          {/* Message Button */}
+          <TouchableOpacity style={styles.button} onPress={() => alert('Message clicked')}>
+            <Text style={styles.buttonText}>Message</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Image (Using Local File) */}
       <Image 
-        source={{ uri: 'https://your-image-url.com/image.jpg' }} 
-        style={styles.eventImage} 
+        source={footerImage}    
+        style={styles.bottomImage} 
         resizeMode="cover" 
       />
-
-      {/* Event Title */}
-      <Text style={styles.eventTitle}>Event Title</Text>
-
-      {/* Event Date & Time */}
-      <Text style={styles.eventDate}>March 10, 2025 at 6:00 PM</Text>
-
-      {/* Event Description */}
-      <Text style={styles.eventDescription}>
-        This is the event description. You can add a detailed description of the event here.
-      </Text>
-
-      {/* RSVP Button */}
-      <TouchableOpacity style={styles.button} onPress={() => alert('RSVP clicked')}>
-        <Text style={styles.buttonText}>RSVP</Text>
-      </TouchableOpacity>
-
-      {/* Message Button */}
-      <TouchableOpacity style={styles.button} onPress={() => alert('Message clicked')}>
-        <Text style={styles.buttonText}>Message</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    paddingBottom: 220,              
+  },
+  imageContainer: {
+    width: screenWidth, 
+    height: 250,
   },
   eventImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
+    width: screenWidth, 
+    height: '100%',
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,        
+    bottom: 0,     
   },
   eventTitle: {
     fontSize: 30,
     fontWeight: 'bold',
-    marginVertical: 10,
-    color: '#333',
-  },
-  eventDate: {
-    fontSize: 18,
-    marginVertical: 5,
-    color: '#666',
+    marginTop: 10,
+    color: 'white',             
+    fontFamily: 'monospace',
+    paddingHorizontal: 10, 
   },
   eventDescription: {
     fontSize: 16,
-    color: '#333',
-    marginVertical: 15,
-    lineHeight: 24,
+    color: 'gray',               
+    paddingHorizontal: 10,
+    marginTop: 5,                
+    marginBottom: 15,            
+  },
+  eventDate: {
+    fontSize: 18,
+    color: 'white',             
+    paddingHorizontal: 10,
+    marginBottom: 30,           
+  },
+  buttonContainer: {
+    flexDirection: 'row',        
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,       
   },
   button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 5,
-    marginVertical: 10,
+    flex: 1,                      
+    backgroundColor: '#000043',   
+    paddingVertical: 20,          // Increased padding for taller buttons
+    marginHorizontal: 5,          
+    borderRadius: 10,
     alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 25,
     fontWeight: 'bold',
+  },
+  bottomImage: {
+    width: screenWidth,           
+    height: 200,                  
+    position: 'absolute',         
+    bottom: 0,                    
+    zIndex: 10,                   
   },
 });
 
