@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -61,8 +62,16 @@ const AddEventPage = () => {
   const [value, setValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log({ eventName, location, eventType, date, time, inviteOption });
+    if (eventName && location && eventType && date && time && inviteOption) {
+      await AsyncStorage.setItem('eventName', eventName);
+      await AsyncStorage.setItem('eventLoc', location);
+      await AsyncStorage.setItem('eventType', eventType);
+      await AsyncStorage.setItem('eventDate', date);
+      await AsyncStorage.setItem('eventTime', time);
+      await AsyncStorage.setItem('eventInvite', inviteOption);
+    }
   };
 
   return (
@@ -114,7 +123,7 @@ const AddEventPage = () => {
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
           onChange={item => {
-            setValue(item.value);
+            setEventType(item.value);
             setIsFocus(false);
             }}
           />
@@ -155,7 +164,7 @@ const AddEventPage = () => {
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
           onChange={item => {
-            setValue(item.value);
+            setTime(item.value);
             }}
           />
         </View>
