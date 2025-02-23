@@ -9,13 +9,17 @@ const Login = () => {
   const router = useRouter();
 
   const handleLogin = async () => {
-    if (username === 'user' && password === 'password') {
+    const storedEmail = await AsyncStorage.getItem('userEmail');
+    const storedPassword = await AsyncStorage.getItem('userPassword');
+  
+    if (username === storedEmail && password === storedPassword) {
       await AsyncStorage.setItem('isLoggedIn', 'true');
-      router.replace('/main'); // Navigate to main screen
+      router.replace('/main');
     } else {
       Alert.alert('Login Failed', 'Invalid credentials');
     }
   };
+  
 
   return (
     <ImageBackground source={require('../assets/images/icon.png')} style={styles.background}>

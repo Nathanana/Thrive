@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -8,14 +9,19 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (email && username && password) {
+      await AsyncStorage.setItem('userEmail', email);
+      await AsyncStorage.setItem('userName', username);
+      await AsyncStorage.setItem('userPassword', password);
+  
       Alert.alert('Registration Successful', 'You can now log in!');
       router.replace('/');
     } else {
       Alert.alert('Error', 'Please fill in all fields');
     }
   };
+  
 
   return (
     <ImageBackground source={require('../assets/images/icon.png')} style={styles.background}>
