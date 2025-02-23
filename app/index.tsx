@@ -1,34 +1,52 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Alert, ImageBackground, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import '../firebaseConfig.js'
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
-
-  const handleLogin = async () => {
-    const storedEmail = await AsyncStorage.getItem('userEmail');
-    const storedPassword = await AsyncStorage.getItem('userPassword');
   
-    if (username === storedEmail && password === storedPassword) {
-      await AsyncStorage.setItem('isLoggedIn', 'true');
-      router.replace('/main');
+  const auth = getAuth();
+  
+  const handleLogin = async () => {
+  
+    if (email && password) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        Alert.alert('Login Successful', 'Welcome back!');
+        router.replace('/main');
+      } catch (error: any) {
+        if (error?.code) {
+          switch (error.code) {
+            case 'auth/user-not-found':
+              Alert.alert('Error', 'No user found with this email.');
+              break;
+            case 'auth/wrong-password':
+              Alert.alert('Error', 'Incorrect password.');
+              break;
+            default:
+              Alert.alert('Error', 'Login failed. Please try again.');
+          }
+        } else {
+          Alert.alert('Error', 'An unexpected error occurred.');
+        }
+      }
     } else {
-      Alert.alert('Login Failed', 'Invalid credentials');
+      Alert.alert('Error', 'Please fill in all fields');
     }
   };
-  
 
   return (
     <ImageBackground source={require('../assets/images/icon.png')} style={styles.background}>
       <View style={styles.container}>
         <TextInput
           style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
           autoCapitalize="none"
           placeholderTextColor="#555"
         />

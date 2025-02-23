@@ -1,15 +1,33 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import '../firebaseConfig';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const router = useRouter();
+  const auth = getAuth();
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     if (email) {
-      Alert.alert('Password Reset Sent', `A reset link has been sent to ${email}`);
-      router.replace('/');
+      try {
+        await sendPasswordResetEmail(auth, email);
+        Alert.alert('Password Reset Sent', `A reset link has been sent to ${email}`);
+        router.push('/');
+      } catch (error: any) {
+        if (error?.code) {
+          switch (error.code) {
+            case 'auth/user-not-found':
+              Alert.alert('Error', 'No user found with this email.');
+              break;
+            default:
+              Alert.alert('Error', 'Login failed. Please try again.');
+          }
+        } else {
+          Alert.alert('Error', 'An unexpected error occurred.');
+        }
+      }
     } else {
       Alert.alert('Error', 'Please enter your email');
     }
