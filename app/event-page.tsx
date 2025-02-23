@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,                      
-    backgroundColor: '#000043',   
+    backgroundColor: '#131e3a',   
     paddingVertical: 20,          // Increased padding for taller buttons
     marginHorizontal: 5,          
     borderRadius: 10,
