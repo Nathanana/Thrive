@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Button, View, Dimensions, Alert, Image, Text, TouchableOpacity,  Modal, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Button, View, Dimensions, Alert, Image, Text, TouchableOpacity, Modal, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Link } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -7,6 +7,9 @@ import { StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { arrayUnion, updateDoc, doc, getFirestore, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 const Host = true;
 const { width, height } = Dimensions.get('window');
@@ -16,8 +19,9 @@ interface LocationCoords {
   longitude: number;
 }
 
-const Main = () => {
+const Main = async () => {
   const [groupCode, setGroupCode] = useState('');
+  const [address, setAddress] = useState('');
   const [location, setLocation] = useState<LocationCoords | null>(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [eventLocations, setEventLocations] = useState([
@@ -26,8 +30,11 @@ const Main = () => {
     { id: 3, latitude: 38.03470, longitude: -78.50214, image: require('../assets/images/athletics.jpg') },
     { id: 4, latitude: 38.03770, longitude: -78.50014, image: require('../assets/images/outdoors.png') }
   ]);
-
-  
+  const [eventName, setEventName] = useState('');
+  const [eventType, setEventType] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [inviteOption, setInviteOption] = useState('');
   const [isInviteVisible, setIsInviteVisible] = useState(false);
   const [isGroupVisible, setIsGroupVisible] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
@@ -109,9 +116,84 @@ const Main = () => {
     setIsGroupVisible(!isGroupVisible);
   };
 
+  const fetchEventData = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'events'));
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+          const eventData = doc.data();
+          setEventName(eventData.eventName);
+          setAddress(eventData.location);
+          setEventType(eventData.eventType);
+          setDate(eventData.date);
+          setTime(eventData.time);
+          setInviteOption(eventData.inviteOption);
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching event data:', error);
+    }
+  };
+  
+  useEffect(() => {
+    fetchEventData();
+  }, []);
+
+  useEffect(() => {
+    const getCoordinates = async () => {
+      try {
+        // Ask for location permissions
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Permission to access location was denied');
+          return;
+        }
+
+        // Geocode the address to get latitude and longitude
+        const geocodedLocations = await Location.geocodeAsync(address);
+
+        if (geocodedLocations.length > 0) {
+          const { latitude, longitude } = geocodedLocations[0];
+          setLocation({ latitude, longitude });
+
+          // Create a new event using the geocoded latitude and longitude
+          const newEvent = {
+            id: eventLocations.length + 1,
+            latitude: latitude,
+            longitude: longitude,
+            image: require('../assets/images/party.jpg') // Change to your desired image
+          };
+
+          // Add the new event to the eventLocations array
+          setEventLocations((prevLocations) => {
+            // Check if the event already exists (to avoid duplicates)
+            const exists = prevLocations.some(
+              (event) => event.latitude === latitude && event.longitude === longitude
+            );
+
+            if (!exists) {
+              return [...prevLocations, newEvent];
+            } else {
+              return prevLocations;
+            }
+          });
+        }
+      } catch (error) {
+        console.log('Error getting location:', error);
+      }
+    };
+
+    if (address) {
+      getCoordinates();
+    }
+
+  }, [address]);
+
   useEffect(() => {
     getPermissions();
   }, []);
+
+
 
   async function getPermissions() {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -144,27 +226,27 @@ const Main = () => {
   return (
     <>
       <View style={styles.container}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isInviteVisible}
-        onRequestClose={toggleInviteModal}
-      >
-        <TouchableWithoutFeedback onPress={() => {
-          Keyboard.dismiss();
-          toggleInviteModal();
-        }}>
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.inviteCode}>{inviteCode}</Text>
-              <TouchableOpacity style={styles.copyButton} onPress={() => {toggleInviteModal(), copyToClipboard(inviteCode)}}>
-                <Image source={require('../assets/images/copy.png')} style={styles.copyButtonIcon} />
-              </TouchableOpacity>
-              <Text style={styles.modalText}>ONE TIME INVITE CODE</Text>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isInviteVisible}
+          onRequestClose={toggleInviteModal}
+        >
+          <TouchableWithoutFeedback onPress={() => {
+            Keyboard.dismiss();
+            toggleInviteModal();
+          }}>
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <Text style={styles.inviteCode}>{inviteCode}</Text>
+                <TouchableOpacity style={styles.copyButton} onPress={() => { toggleInviteModal(), copyToClipboard(inviteCode) }}>
+                  <Image source={require('../assets/images/copy.png')} style={styles.copyButtonIcon} />
+                </TouchableOpacity>
+                <Text style={styles.modalText}>ONE TIME INVITE CODE</Text>
+              </View>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+          </TouchableWithoutFeedback>
+        </Modal>
 
       <Modal
         animationType="slide"
@@ -194,9 +276,9 @@ const Main = () => {
                 <Text style={styles.buttonText}>SUBMIT</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
 
         <MapView
           style={styles.map}
@@ -229,11 +311,11 @@ const Main = () => {
           </Link>
         )}
         {Host && (
-          <TouchableOpacity style={styles.inviteButton} onPress={() => {toggleInviteModal(); generateCode() ;}}>
+          <TouchableOpacity style={styles.inviteButton} onPress={() => { toggleInviteModal(); generateCode(); }}>
             <Image source={require('../assets/images/invite.png')} style={styles.inviteButtonIcon} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.groupButton} onPress={() => {toggleGroupModal(); clearGroupCode();}}>
+        <TouchableOpacity style={styles.groupButton} onPress={() => { toggleGroupModal(); clearGroupCode(); }}>
           <Image source={require('../assets/images/group.png')} style={styles.inviteButtonIcon} />
         </TouchableOpacity>
       </View>
@@ -242,14 +324,14 @@ const Main = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
+  container: {
+    flex: 1,
     backgroundColor: '#ccc',
   },
   map: {
     width,
     height: height,
-    zIndex: 0, 
+    zIndex: 0,
   },
   centeredView: {
     flex: 1,
@@ -301,7 +383,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: '100%',
     textAlign: 'center',
-  }, 
+  },
   groupCode: {
     fontSize: 70,
     fontWeight: 'bold',
@@ -314,7 +396,7 @@ const styles = StyleSheet.create({
     paddingRight: 15,
     textAlign: 'center',
     borderRadius: 5,
-  }, 
+  },
   sheet: {
     backgroundColor: '#131E3A',
     borderRadius: 10,

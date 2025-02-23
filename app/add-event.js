@@ -1,6 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 function formatDate(input) {
   let value = input.replace(/\D/g, "");
@@ -61,8 +64,24 @@ const AddEventPage = () => {
   const [value, setValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
 
-  const handleSubmit = () => {
-    console.log({ eventName, location, eventType, date, time, inviteOption });
+  const handleSubmit = async () => {
+    if (eventName && location && eventType && date && time && inviteOption) {
+      try {
+        await addDoc(collection(db, 'events'), {  // Ensure addDoc is imported
+          eventName,
+          location,
+          eventType,
+          date,
+          time,
+          inviteOption,
+          createdAt: new Date(),
+        });
+        console.log('Event added successfully to Firestore');
+      } catch (error) {
+        console.error('Error adding event:', error);
+      }
+    }
+    router.back();
   };
 
   return (
@@ -114,7 +133,7 @@ const AddEventPage = () => {
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
           onChange={item => {
-            setValue(item.value);
+            setEventType(item.value);
             setIsFocus(false);
             }}
           />
@@ -155,7 +174,7 @@ const AddEventPage = () => {
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
           onChange={item => {
-            setValue(item.value);
+            setTime(item.value);
             }}
           />
         </View>
