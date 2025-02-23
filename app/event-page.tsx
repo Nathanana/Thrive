@@ -48,7 +48,7 @@ const EventPage = () => {
 
       {/* Bottom Image (Using Local File) */}
       <Image 
-        source={footerImage}    // Using the imported local image
+        source={footerImage}    
         style={styles.bottomImage} 
         resizeMode="cover" 
       />
@@ -58,7 +58,7 @@ const EventPage = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: 220,              // Ensure scrollable area above bottom image
+    paddingBottom: 220,              
   },
   imageContainer: {
     width: screenWidth, 
@@ -102,10 +102,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,       
   },
   button: {
-    flex: 1,                      // Equal width for both buttons
-    backgroundColor: '#000043',    // Blue background color
-    paddingVertical: 12,
-    marginHorizontal: 5,           // Space between buttons
+    flex: 1,                      
+    backgroundColor: '#000043',   
+    paddingVertical: 20,          // Increased padding for taller buttons
+    marginHorizontal: 5,          
     borderRadius: 10,
     alignItems: 'center',
   },
@@ -115,11 +115,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bottomImage: {
-    width: screenWidth,            // Full width
-    height: 200,                   // Fixed height
-    position: 'absolute',          // Position at the bottom
-    bottom: 0,                     // Align to bottom
-    zIndex: 10,                    // Above background but below other elements
+    width: screenWidth,           
+    height: 200,                  
+    position: 'absolute',         
+    bottom: 0,                    
+    zIndex: 10,                   
   },
 });
 
