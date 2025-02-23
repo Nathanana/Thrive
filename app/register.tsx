@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import '../firebaseConfig';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -9,19 +11,42 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
+  const auth = getAuth();
+  const db = getFirestore();
+
   const handleRegister = async () => {
-    if (email && username && password) {
-      await AsyncStorage.setItem('userEmail', email);
-      await AsyncStorage.setItem('userName', username);
-      await AsyncStorage.setItem('userPassword', password);
+    if (email && password && username) {  
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await setDoc(doc(db, 'users', user.uid), {
+          username: username,
+          email: email,
+        });
   
-      Alert.alert('Registration Successful', 'Welcome to Thrive!');
-      router.replace('/');
+        Alert.alert('Registration Successful', 'You can now log in!');
+        router.replace('/');
+      } catch (error: any) {
+        if (error?.code) {
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              Alert.alert('Error', 'This email is already in use.');
+              break;
+            case 'auth/weak-password':
+              Alert.alert('Error', 'Password should be at least 6 characters.');
+              break;
+            default:
+              Alert.alert('Error', 'Registration failed. Please try again.');
+          }
+        } else {
+          Alert.alert('Error', 'An unexpected error occurred.');
+        }
+      }
     } else {
       Alert.alert('Error', 'Please fill in all fields');
     }
   };
-  
 
   return (
     <ImageBackground source={require('../assets/images/icon.png')} style={styles.background}>
