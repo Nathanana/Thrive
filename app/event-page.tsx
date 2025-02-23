@@ -4,13 +4,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const screenWidth = Dimensions.get('window').width;
 
-const footerImage = require('../assets/images/buildings.jpg'); // Adjust the path as needed
+const footerImage = require('../assets/images/buildings.jpg');
 
 const EventPage = () => {
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Event Image with Downward Gradient */}
+        {}
         <View style={styles.imageContainer}>
           <Image 
             source={{ uri: 'https://news.virginia.edu/sites/default/files/Header_Ryan_Marathon_SS.jpg' }} 
@@ -18,21 +18,21 @@ const EventPage = () => {
             resizeMode="cover" 
           />
           <LinearGradient
-            colors={['transparent', 'black']} // Gradient from transparent to black
+            colors={['transparent', 'black']}
             style={styles.gradientOverlay}
           />
         </View>
 
-        {/* Event Title */}
+        {}
         <Text style={styles.eventTitle}>Run with Jim Ryan</Text>
 
-        {/* Event Description (Now right below the title) */}
+        {}
         <Text style={styles.eventDescription}>by @JimRyan</Text>
 
-        {/* Event Date & Time */}
+        {}
         <Text style={styles.eventDate}>February 6th, 2025 at 7:00 AM</Text>
 
-        {/* Buttons Container (Side by Side) */}
+        {}
         <View style={styles.buttonContainer}>
           {/* RSVP Button */}
           <TouchableOpacity style={styles.button} onPress={() => alert('RSVP clicked')}>
@@ -46,7 +46,7 @@ const EventPage = () => {
         </View>
       </ScrollView>
 
-      {/* Bottom Image (Using Local File) */}
+      {}
       <Image 
         source={footerImage}    
         style={styles.bottomImage} 
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,                      
     backgroundColor: '#131e3a',   
-    paddingVertical: 20,          // Increased padding for taller buttons
+    paddingVertical: 20,
     marginHorizontal: 5,          
     borderRadius: 10,
     alignItems: 'center',

@@ -72,6 +72,7 @@ const AddEventPage = () => {
       await AsyncStorage.setItem('eventTime', time);
       await AsyncStorage.setItem('eventInvite', inviteOption);
     }
+    router.back();
   };
 
   return (
