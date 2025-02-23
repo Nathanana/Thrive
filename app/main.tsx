@@ -99,7 +99,7 @@ const Main = async () => {
             id: eventLocations.length + 1,
             latitude: latitude,
             longitude: longitude,
-            image: require('../assets/images/athletics.jpg') // Change to your desired image
+            image: require('../assets/images/party.jpg') // Change to your desired image
           };
 
           // Add the new event to the eventLocations array
