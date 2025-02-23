@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "app/main.tsx", "app/add-event.js", "../components/event-date.js"  ]
+, "app/main.tsx", "app/add-event.tsx", "../components/event-date.js"  ]
 }
