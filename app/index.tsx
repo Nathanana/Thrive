@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 5,
     alignItems: 'center',
-    opacity: 0.7,
+    opacity: 0.85,
     marginBottom: 8,
   },
   buttonText: {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     borderRadius: 5,
     backgroundColor: 'white',
-    opacity: 0.7,
+    opacity: 0.85,
   },
   link: {
     color: '#1C2951',

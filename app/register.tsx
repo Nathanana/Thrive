@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
 
 const Register = () => {
@@ -18,49 +18,84 @@ const Register = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create an Account</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Button title="Register" onPress={handleRegister} />
-      <Text style={styles.link} onPress={() => router.push('/')}>
-        Already have an account? Login
-      </Text>
-    </View>
+    <ImageBackground source={require('../assets/images/icon.png')} style={styles.background}>
+      <View style={styles.container}>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          placeholderTextColor="#555"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          placeholderTextColor="#555"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+          placeholderTextColor="#555"
+        />
+        <TouchableOpacity style={styles.customButton} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
+
+        <View style={styles.linksContainer}>
+          <Text style={styles.link} onPress={() => router.push('/')}>
+            Already have an account? Login
+          </Text>
+        </View>
+      </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  customButton: {
+    backgroundColor: '#131E3A',
+    paddingVertical: 12,
+    borderRadius: 5,
+    alignItems: 'center',
+    opacity: 0.85,
+    marginBottom: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
     padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingTop: 70,
+  },
+  linksContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 15,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: 'white',
   },
   input: {
     height: 40,
@@ -68,10 +103,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 20,
     paddingLeft: 8,
+    borderRadius: 5,
+    backgroundColor: 'white',
+    opacity: 0.85,
   },
   link: {
-    color: 'blue',
-    marginTop: 10,
+    color: '#1C2951',
+    marginHorizontal: 20,
     textAlign: 'center',
   },
 });
